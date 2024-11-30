@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const user = mongoose.Schema({
+const seller = mongoose.Schema({
   userName: {
     type: String,
     maxLength: 20,
@@ -11,6 +11,7 @@ const user = mongoose.Schema({
     maxLength: 20,
     required: [true, "user password is required"],
   },
+
   email: {
     type: String,
     required: [true, "Email is required"],
@@ -20,14 +21,10 @@ const user = mongoose.Schema({
     default: Date.now(),
   },
   rip: {
-    type: String,
+    type: Number,
     maxLength: 20,
     required: [true, "user rip is required"],
   },
-  type: {
-    type: String,
-    default: "user",
-  },
 });
 
-module.exports = mongoose.model("Users", user);
+module.exports = mongoose.model("Sellers", seller);
