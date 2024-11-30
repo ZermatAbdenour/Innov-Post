@@ -1,19 +1,22 @@
 const mongoose = require('mongoose')
 
 const user = mongoose.Schema({
-    userName:{
-        type:String,
+    RIP:{
+        type:Number,
         maxLength:20,
-        required:[true,"the user name is required"]
+        required:[true,"RIP is required"]
     },
-    password:{
+    sold:{
+        type:Number,
+        required:[true,"sold is required"]
+    },
+    name:{
         type:String,
-        maxLength:20,
-        required:[true,"user password is required"]
+        required:[true,"name is required"]
     },
     email:{
         type:String,
-        required:[true,"Email is required"]
+        required:[true,"email is required"]
     },
     createdAt:{
         type:Date,
