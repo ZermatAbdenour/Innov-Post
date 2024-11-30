@@ -6,7 +6,7 @@ const Report = require("../models/report")
 const User = require("../models/user")
 const {upload} = require("../middlewares/FilesMiddleware");
 
-const uploadFiles = upload.any();
+uploadFiles=upload.single('files')
 const sellerValidation=async (req,res)=>{
     const {transactionId} = req.body
     try{
@@ -59,15 +59,13 @@ const cancelTransaction=async (req,res)=>{
     }
 }
 const reportIssue=async (req,res)=>{
-    console.log(req.body)
     const {transactionId,sellerRIP,message} = req.body
-    console.log(req.body)
-    try{
         uploadFiles(req, res, async (err) => {
             if (err) {
                 return res.status(400).send('Error uploading files: ' + err.message);
             }
-        const trans = await Transaction.findById(transactionId)
+            console.log("error")
+            const trans = await Transaction.findById(transactionId)
         if(!trans){
             res.status(404).send("transaction not found")
         }
@@ -91,9 +89,6 @@ const reportIssue=async (req,res)=>{
             res.status(200).send("report submited")
         });
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
-    }
 }
 const getAllBuyerTransactions = async (req,res)=>{
     const {buyerRIP} = req.body
