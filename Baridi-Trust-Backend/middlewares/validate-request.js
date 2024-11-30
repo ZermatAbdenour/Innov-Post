@@ -1,4 +1,3 @@
-const Joi = require('joi')
 
 const validateRequest =(schema)=>{
     return (req,res,next)=>{

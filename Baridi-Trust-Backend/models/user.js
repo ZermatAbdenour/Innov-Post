@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const user = mongoose.Schema({
     RIP:{
-        type:Number,
+        type:String,
         maxLength:20,
         required:[true,"RIP is required"]
     },
@@ -14,9 +14,9 @@ const user = mongoose.Schema({
         type:String,
         required:[true,"name is required"]
     },
-    email:{
+    password:{
         type:String,
-        required:[true,"email is required"]
+        required:[true,"password is required"]
     },
     createdAt:{
         type:Date,

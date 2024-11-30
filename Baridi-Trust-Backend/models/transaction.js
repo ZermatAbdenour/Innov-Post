@@ -2,12 +2,12 @@ const mongoose = require('mongoose')
 
 const transaction = mongoose.Schema({
     sellerRIP:{
-        type:Number,
+        type:String,
         maxLength:20,
         required:[true,"buyer RIP is required"]
     },
     buyerRIP:{
-        type:Number,
+        type:String,
         maxLength:20,
         required:[true,"seller RIP is required"]
     },
