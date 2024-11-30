@@ -18,7 +18,7 @@ const transaction = mongoose.Schema({
     status:{
         type:String,
         default:"hold",
-        enum:["hold","sellerConfirmed","buyerConfirmed","completed","cancelled"]
+        enum:["hold","sellerConfirmed","buyerConfirmed","cancelled","issued"]
     },
     createdAt:{
         type:Date,
