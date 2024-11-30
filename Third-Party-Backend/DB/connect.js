@@ -1,11 +1,12 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const DBConnect = async(URI)=>{
-    try{
-        await mongoose.connect(URI)
-    }catch(err){
-        console.log(err)
-    }
-}
+const DBConnect = async (URI) => {
+  try {
+    await mongoose.connect(URI);
+    console.log("Connected to Database");
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-module.exports = DBConnect
+module.exports = DBConnect;
