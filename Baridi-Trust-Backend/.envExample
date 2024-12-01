@@ -1,2 +1,4 @@
 MONGO_URI = ""
 JWT_SECRET = "secret"
+REDIRECT_URL = ""
+OPENAI_API = ""
