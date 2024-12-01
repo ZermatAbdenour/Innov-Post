@@ -4,11 +4,12 @@ const report = mongoose.Schema({
     sellerCardNum:{
         type:Number,
         maxLength:16,
-        required:[true,"buyer CardNum is required"]
+        required:[true,"seller CardNum is required"]
     },
     transactionId:{
-        type:Number,
-        required:[true,"buyer CardNum is required"]
+        type:String,
+        maxLength:100,
+        required:[true,"transctionid  is required"]
     },
     message:{
         type:String,
