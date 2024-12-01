@@ -9,57 +9,55 @@ const {upload} = require("../middlewares/FilesMiddleware");
 uploadFiles=upload.single('files')
 const sellerValidation=async (req,res)=>{
     const {transactionId} = req.body
-    try{
-        const trans = await Transaction.findById(transactionId)
-        if(!trans){
-            res.status(404).send("transaction not found")
-        }
-        if(trans.status!=="hold"){
-            res.status(403).send("forbidden")
-        }
-        await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "sellerConfirmed"}})
-        res.status(200).send("status changed")
+    const trans = await Transaction.findById(transactionId)
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
+    if(trans.sellerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
+    if(!trans){
+        return res.status(404).send("transaction not found")
     }
+    if(trans.status!=="hold"){
+        return res.status(403).send("forbidden")
+    }
+    await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "sellerConfirmed"}})
+    return res.status(200).send("status changed")
 }
 const buyerValidation=async (req,res)=>{
     const {transactionId} = req.body
-    try{
-        const trans = await Transaction.findById(transactionId)
-        if(!trans){
-            res.status(404).send("transaction not found")
-        }
-        if(trans.status!=="sellerConfirmed"){
-            res.status(403).send("forbidden")
-        }
-        await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "buyerConfirmed"}})
-        res.status(200).send("status changed")
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
+    if(trans.buyerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
+    const trans = await Transaction.findById(transactionId)
+    if(!trans){
+        return res.status(404).send("transaction not found")
     }
+    if(trans.status!=="sellerConfirmed"){
+        return res.status(403).send("forbidden")
+    }
+    await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "buyerConfirmed"}})
+    return res.status(200).send("status changed")
 }
 const cancelTransaction=async (req,res)=>{
     const {transactionId} = req.body
-    try{
-        const trans = await Transaction.findById(transactionId)
-        if(!trans){
-            res.status(404).send("transaction not found")
-        }
-        if(trans.status!=="hold"){
-            res.status(403).send("forbidden")
-        }
-        await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "cancelled"}})
-        res.status(200).send("status changed")
+    const trans = await Transaction.findById(transactionId)
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
+    if(trans.buyerCardNum!==req.user.id && trans.sellerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
+    if(!trans){
+        return res.status(404).send("transaction not found")
     }
+    if(trans.status!=="hold"){
+        return res.status(403).send("forbidden")
+    }
+    await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "cancelled"}})
+    return res.status(200).send("status changed")
+
 }
 const reportIssue=async (req,res)=>{
-    const {transactionId,sellerRIP,message} = req.body
+    const {transactionId,sellerCardNum,message} = req.body
         uploadFiles(req, res, async (err) => {
             if (err) {
                 return res.status(400).send('Error uploading files: ' + err.message);
@@ -67,10 +65,10 @@ const reportIssue=async (req,res)=>{
             console.log("error")
             const trans = await Transaction.findById(transactionId)
         if(!trans){
-            res.status(404).send("transaction not found")
+            return res.status(404).send("transaction not found")
         }
         if(trans.status!=="sellerConfirmed"){
-            res.status(403).send("forbidden")
+            return res.status(403).send("forbidden")
         }
 
             const uploadedFiles = req.files;
@@ -80,7 +78,7 @@ const reportIssue=async (req,res)=>{
             await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "issued"}})
 
             const report = new Report({
-                sellerRIP:sellerRIP,
+                sellerCardNum:sellerCardNum,
                 transactionId:transactionId,
                 message:message,
                 filePath:uploadedFiles[0].path
@@ -90,37 +88,29 @@ const reportIssue=async (req,res)=>{
         });
 
 }
-const getAllBuyerTransactions = async (req,res)=>{
-    const {buyerRIP} = req.body
-    try{
-        const transactions= await Transaction.find({ buyerRIP : buyerRIP })
-        res.status(200).send(transactions)
-
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
-
-    }
+const getAllTransactions = async(req,res)=>{
+    const CardNum = req.user.id
+    const transactions = await Transaction.find({
+        $or: [
+            { buyerCardNum: CardNum },
+            { sellerCardNum: CardNum }
+        ]
+    });
+    res.status(200).send(transactions)
 }
-const getAllSellerTransactions = async (req,res)=>{
-    const {sellerRIP} = req.body
-    try{
-        const transactions= await Transaction.find({ sellerRIP : sellerRIP })
-        res.status(200).send(transactions)
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
-    }
-}
 const getOneTransaction = async (req,res)=>{
-    const {transId} = req.params
-    console.log(transId)
-    const trans= await Transaction.findById(transId)
+    const {id} = req.params
+    const trans= await Transaction.findById(id)
+
+    if(trans.buyerCardNum != req.user.id && trans.sellerCardNum != req.user.id)
+        return res.status(401).send("unauthorized")
     if(!trans){
-        res.status(404).send("transaction not found")
+        return res.status(404).send("transaction not found")
     }
-    const seller = await User.findOne({RIP:trans.sellerRIP})
-    const buyer = await User.findOne({RIP:trans.buyerRIP})
-    res.status(200).json({
+    const seller = await User.findOne({cardNum:trans.sellerCardNum}).select('-password');
+    const buyer = await User.findOne({cardNum:trans.buyerCardNum}).select('-password');
+    return res.status(200).json({
         transaction: trans,
         seller: seller,
         buyer: buyer
@@ -136,7 +126,6 @@ module.exports = {
     buyerValidation,
     cancelTransaction,
     reportIssue,
-    getAllSellerTransactions,
-    getAllBuyerTransactions,
+    getAllTransactions,
     getOneTransaction
 };

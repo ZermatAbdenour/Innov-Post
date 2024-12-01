@@ -1,15 +1,14 @@
 const mongoose = require('mongoose')
 
 const report = mongoose.Schema({
-    sellerRIP:{
+    sellerCardNum:{
         type:Number,
-        maxLength:20,
-        required:[true,"buyer RIP is required"]
+        maxLength:16,
+        required:[true,"buyer CardNum is required"]
     },
     transactionId:{
         type:Number,
-        maxLength:20,
-        required:[true,"buyer RIP is required"]
+        required:[true,"buyer CardNum is required"]
     },
     message:{
         type:String,

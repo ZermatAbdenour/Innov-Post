@@ -1,18 +1,29 @@
 const Joi = require('joi')
 
-registerSchema = Joi.object(
+redirectSchema = Joi.object(
     {
-        userName: Joi.string().required().max(20),
-        password: Joi.string().required().max(20),
-        repeatPassword: Joi.string().required().max(20),
-        email: Joi.string().email().required()
+        sellerCardNum: Joi.string().required().max(16).min(16),
+        buyerCardNum: Joi.string().required().max(16).min(16),
+        price: Joi.number().required(),
     }
 )
 loginSchema = Joi.object(
     {
-        email:Joi.string().email().required().max(20),
-        password:Joi.string().required().max(20)
+        cardNum:Joi.string().required().max(16).min(16),
+        transactionId:Joi.string().required(),
+        ccv2:Joi.number().required(),
+        expirationDate:Joi.date().required(),
+        fullName:Joi.string().required()
+    }
+)
+createUserSchema = Joi.object(
+    {
+        cardNum:Joi.string().required().max(16).min(16),
+        ccv2:Joi.number().required(),
+        expirationDate:Joi.date().required(),
+        fullName:Joi.string().required(),
+        sold:Joi.number().required(),
     }
 )
 
-module.exports = {registerSchema,loginSchema}
+module.exports = {redirectSchema,createUserSchema,loginSchema}
