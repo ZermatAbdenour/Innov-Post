@@ -6,6 +6,7 @@ import Dashboard from "./pages/DashboardPage";
 import AuthenticationPage from "./pages/Authentication";
 import TransactionDetailsBuyer from "./pages/TransactionDetailsBuyer";
 import TransactionDetailsSeller from "./pages/TransactionDetailsSeller";
+import ReportPage from "./pages/ReportPage";
 
 const App = () => {
   return (
@@ -21,13 +22,16 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
 
         {/* Route for the Authentication Page */}
-        <Route path="/authentication" element={<AuthenticationPage />} />
+        <Route path="/auth" element={<AuthenticationPage />} />
 
         {/* Route for Transaction Details for Buyer */}
         <Route path="/transaction-details/buyer" element={<TransactionDetailsBuyer />} />
 
         {/* Route for Transaction Details for Seller */}
         <Route path="/transaction-details/seller" element={<TransactionDetailsSeller />} />
+        <Route path="/ReportPage" element={<ReportPage />} />
+
+        
       </Routes>
     </Router>
   );

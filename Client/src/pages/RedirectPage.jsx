@@ -10,8 +10,8 @@ const RedirectPage = () => {
   // Automatically redirect to another page after 5 seconds
   useEffect(() => {
     const redirectTimer = setTimeout(() => {
-      window.location.href = "/"; // Replace '/' with your target route
-    }, 50000);
+      window.location.href = "/auth"; // Replace '/' with your target route
+    }, 1500);
 
     return () => clearTimeout(redirectTimer); // Cleanup timer on component unmount
   }, []);
