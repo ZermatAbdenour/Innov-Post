@@ -129,9 +129,9 @@ const reportIssue = async (req, res) => {
                 return res.status(404).send("Transaction not found");
             }
 
-            // if (trans.status !== 'sellerConfirmed') {
-            //     return res.status(403).send("Forbidden: Transaction status is not valid");
-            // }
+            if (trans.status !== 'sellerConfirmed') {
+                return res.status(403).send("Forbidden: Transaction status is not valid");
+            }
 
             await Transaction.findByIdAndUpdate(transactionId, { status: 'issued' });
 

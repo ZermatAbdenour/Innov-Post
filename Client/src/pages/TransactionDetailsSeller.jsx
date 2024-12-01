@@ -1,25 +1,64 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import background from '../assets/background.svg';
 import sell from '../assets/sell.svg';
 import buy from '../assets/buy.svg';
+import axios from "axios";
 
-const sellerDetails = {
-    name: "John Doe",
-    email: "jhondoe@gmail.com",
-    website: "www.johndoe.com",
-    price: "6000",
-    deliveryDate: "12th August 2021",
-}
 
-const details = [
-    "Name",
-    "Email",
-    "Website",
-    "Price",
-    "Delivery Date",
-]
+const TransactionDetailsSeller = ({ transactionId }) => {
+    const [sellerDetails, setSellerDetails] = useState({
+        name: "",
+        email: "",
+        website: "",
+        price: "",
+        deliveryDate: ""
+    });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-const TransactionDetailsSeller = () => {
+    const details = ["Name", "Email", "Website", "Price", "Delivery Date"];
+
+    useEffect(() => {
+        const fetchSellerDetails = async () => {
+            try {
+                setLoading(true);
+                //const token = localStorage.getItem("token"); // Or get it from a secure source
+                const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwNzk5OTk5MDAwMDAwMDIwMDkxIiwiaXNTZWxsZXIiOmZhbHNlLCJpYXQiOjE3MzMwMDkyOTAsImV4cCI6MTczMzYxNDA5MH0.WsVZwbtjMOgXfS0Zd8MxjX_MiVdsLSc7C7VmrO6Qxhw" // Or get it from a secure source
+                const response = await axios.get(
+                    `http://localhost:3000/api/v1/transactions/${transactionId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                if (response.data.seller) {
+                    const seller = response.data.seller;
+                    setSellerDetails({
+                        name: seller.fullName || "N/A",
+                        email: response.data.transaction.sellerCardNum || "N/A",
+                        website: "" || "N/A",
+                        price: response.data.transaction.price || "N/A",
+                        deliveryDate: response.data.transaction.createdAt || "N/A"
+                    });
+                }
+            } catch (err) {
+                setError(err.message || "Failed to fetch seller details");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSellerDetails();
+    }, [transactionId]);
+
+    if (loading) {
+        return <p className="text-white">Loading seller details...</p>;
+    }
+
+    if (error) {
+        return <p className="text-red-500">Error: {error}</p>;
+    }
     return (
         // The page should have a background image
         <div className="bg-details-background bg-cover">
