@@ -7,8 +7,8 @@ const report = mongoose.Schema({
         required:[true,"buyer RIP is required"]
     },
     transactionId:{
-        type:Number,
-        maxLength:20,
+        type:String,
+        maxLength:100,
         required:[true,"buyer RIP is required"]
     },
     message:{

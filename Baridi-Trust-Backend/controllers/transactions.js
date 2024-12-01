@@ -4,9 +4,10 @@ const createError = require('http-errors')
 const Transaction = require("../models/transaction")
 const Report = require("../models/report")
 const User = require("../models/user")
-const {upload} = require("../middlewares/FilesMiddleware");
+const fs = require('fs');
+const path = require('path');
+const Busboy = require('busboy');
 
-uploadFiles=upload.single('files')
 const sellerValidation=async (req,res)=>{
     const {transactionId} = req.body
     try{
@@ -58,38 +59,8 @@ const cancelTransaction=async (req,res)=>{
         res.status(500).send("Internal server error : ", e)
     }
 }
-const reportIssue=async (req,res)=>{
-    const {transactionId,sellerRIP,message} = req.body
-        uploadFiles(req, res, async (err) => {
-            if (err) {
-                return res.status(400).send('Error uploading files: ' + err.message);
-            }
-            console.log("error")
-            const trans = await Transaction.findById(transactionId)
-        if(!trans){
-            res.status(404).send("transaction not found")
-        }
-        if(trans.status!=="sellerConfirmed"){
-            res.status(403).send("forbidden")
-        }
 
-            const uploadedFiles = req.files;
-            if (!uploadedFiles || uploadedFiles.length === 0) {
-                return res.status(400).send('No files were uploaded.');
-            }
-            await Transaction.findOneAndUpdate({_id : transactionId}, {$set : {status : "issued"}})
 
-            const report = new Report({
-                sellerRIP:sellerRIP,
-                transactionId:transactionId,
-                message:message,
-                filePath:uploadedFiles[0].path
-            })
-            await report.save()
-            res.status(200).send("report submited")
-        });
-
-}
 const getAllBuyerTransactions = async (req,res)=>{
     const {buyerRIP} = req.body
     try{
@@ -130,6 +101,68 @@ const getAllUsers = async (req,res)=>{
     const users = await User.find()
     res.status(200).json(users);
 }
+
+const reportIssue = async (req, res) => {
+    const busboy = Busboy({ headers: req.headers }); // Correct usage here
+
+    let transactionId = '';
+    let sellerRIP = '';
+    let message = '';
+    let uploadedFilePath = '';
+
+    busboy.on('field', (fieldname, val) => {
+
+        if (fieldname === 'transactionId') {
+            transactionId = val;  // Cast to a number
+        } else if (fieldname === 'sellerRIP') {
+            sellerRIP = Number(val);  // Cast to a number
+        } else if (fieldname === 'message') {
+            message = val;
+        }
+    });
+
+    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+        const saveTo = path.join(__dirname, '../uploads', `${Date.now()}-${filename}.pdf`);
+        uploadedFilePath = saveTo;
+
+        file.pipe(fs.createWriteStream(saveTo));
+    });
+
+    busboy.on('finish', async () => {
+        if (!transactionId || !sellerRIP || !message || !uploadedFilePath) {
+            return res.status(400).send('Missing required fields or file');
+        }
+
+        try {
+            const trans = await Transaction.findById(transactionId);
+            if (!trans) {
+                return res.status(404).send("Transaction not found");
+            }
+
+            if (trans.status !== 'sellerConfirmed') {
+                return res.status(403).send("Forbidden: Transaction status is not valid");
+            }
+
+            await Transaction.findByIdAndUpdate(transactionId, { status: 'issued' });
+
+            const report = new Report({
+                sellerRIP,
+                transactionId,
+                message,
+                filePath: uploadedFilePath,
+            });
+            await report.save();
+
+            res.status(200).send('Report submitted successfully');
+        } catch (error) {
+            res.status(500).send("Internal server error: " + error.message);
+        }
+    });
+
+    req.pipe(busboy);
+};
+
+
 module.exports = {
     getAllUsers,
     sellerValidation,
