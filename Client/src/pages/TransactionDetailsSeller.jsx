@@ -102,7 +102,18 @@ const TransactionDetailsSeller = () => {
                     </div>
                     <div className=' flex md:flex-row flex-col md:px-28 md:justify-between gap-4'>
                         <div className=' flex md:flex-row flex-col gap-4'>
-                            <button className=' px-7 py-3 bg-baridi-yellow text-white rounded-lg hover:bg-yellow-600 duration-100 font-semibold'>Confirm</button>
+                            <button className=' px-7 py-3 bg-baridi-yellow text-white rounded-lg hover:bg-yellow-600 duration-100 font-semibold' onClick={async () => {
+                                if (transaction.status === "buyerConfirmed") {
+                                    await axios.post(`${localHostUrl}/transactions/buyerValidation`, {
+                                        transactionId
+                                    }, {
+                                        headers: {
+                                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                                        }
+                                    })
+                                }
+                            }
+                            }>Confirm</button>
                             <button className=' px-7 py-3 text-red-500 rounded-lg  duration-100 font-semibold border border-red-500'>Report transaction</button>
                         </div>
                         <button className=' px-7 py-3 bg-baridi-blue text-white rounded-lg   font-semibold'>View my transactions</button>

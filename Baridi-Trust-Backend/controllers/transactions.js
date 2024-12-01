@@ -60,16 +60,31 @@ const cancelTransaction=async (req,res)=>{
 }
 
 
-const getAllTransactions = async(req,res)=>{
-    const CardNum = req.user.id
-    const transactions = await Transaction.find({
-        $or: [
-            { buyerCardNum: CardNum },
-            { sellerCardNum: CardNum }
-        ]
-    });
-    res.status(200).send(transactions)
-}
+const getAllTransactions = async (req, res) => {
+    try {
+        const CardNum = req.user.id; // Assuming `req.user.id` contains the card number
+        const transactions = await Transaction.find({
+            $or: [
+                { buyerCardNum: CardNum },
+                { sellerCardNum: CardNum }
+            ]
+        });
+
+        // Add a role field to indicate whether the user is the buyer or seller
+        const transactionsWithRole = transactions.map(transaction => {
+            return {
+                ...transaction._doc, // Spread the existing transaction data
+                role: transaction.buyerCardNum === CardNum ? 'buyer' : 'seller'
+            };
+        });
+
+        res.status(200).send(transactionsWithRole);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: 'Failed to fetch transactions' });
+    }
+};
+
 
 const getOneTransaction = async (req,res)=>{
     const {id} = req.params
@@ -129,9 +144,9 @@ const reportIssue = async (req, res) => {
                 return res.status(404).send("Transaction not found");
             }
 
-            // if (trans.status !== 'sellerConfirmed') {
-            //     return res.status(403).send("Forbidden: Transaction status is not valid");
-            // }
+            if (trans.status !== 'sellerConfirmed') {
+                return res.status(403).send("Forbidden: Transaction status is not valid");
+            }
 
             await Transaction.findByIdAndUpdate(transactionId, { status: 'issued' });
 

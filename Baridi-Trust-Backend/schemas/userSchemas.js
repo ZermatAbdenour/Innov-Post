@@ -10,7 +10,7 @@ redirectSchema = Joi.object(
 loginSchema = Joi.object(
     {
         cardNum:Joi.string().required().max(16).min(16),
-        transactionId:Joi.string().required(),
+        transactionId:Joi.string(),
         ccv2:Joi.number().required(),
         expirationDate:Joi.date().required(),
         fullName:Joi.string().required()
