@@ -7,8 +7,9 @@ const report = mongoose.Schema({
         required:[true,"buyer CardNum is required"]
     },
     transactionId:{
-        type:Number,
-        required:[true,"buyer CardNum is required"]
+        type:String,
+        maxLength:100,
+        required:[true,"buyer RIP is required"]
     },
     message:{
         type:String,
