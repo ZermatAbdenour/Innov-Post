@@ -1,15 +1,15 @@
 const mongoose = require('mongoose')
 
 const transaction = mongoose.Schema({
-    sellerRIP:{
+    sellerCardNum:{
         type:String,
-        maxLength:20,
-        required:[true,"buyer RIP is required"]
+        maxLength:16,
+        required:[true,"buyer CardNum is required"]
     },
-    buyerRIP:{
+    buyerCardNum:{
         type:String,
-        maxLength:20,
-        required:[true,"seller RIP is required"]
+        maxLength:16,
+        required:[true,"seller CardNum is required"]
     },
     price:{
         type:Number,
@@ -18,7 +18,7 @@ const transaction = mongoose.Schema({
     status:{
         type:String,
         default:"hold",
-        enum:["hold","sellerConfirmed","buyerConfirmed","completed","cancelled"]
+        enum:["hold","sellerConfirmed","buyerConfirmed","cancelled","issued"]
     },
     createdAt:{
         type:Date,
