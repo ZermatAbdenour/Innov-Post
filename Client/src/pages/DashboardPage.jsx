@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import bg from "../assets/RedirectPage.png"; // Background image
+import bg from "../assets/RedirectPage.svg";// Background image
 import line from "../assets/line.svg";
 import filter from "../assets/filter.svg"; // Import filter image
-import { FaSearch } from 'react-icons/fa'; // Add search icon from react-icons
 
 const Dashboard = () => {
   const [transactions, setTransactions] = useState([
@@ -53,19 +52,20 @@ const Dashboard = () => {
         <img src={line} className="w-48" alt="line" />
         <br />
         <div className="flex justify-between items-center mb-6">
-          <div className="relative w-full max-w-md">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full p-2 pl-10 rounded-lg bg-transparent border border-white text-white placeholder-gray-400"
-              onChange={handleSearch}
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
-          </div>
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-full max-w-md p-2 rounded-lg bg-transparent border border-white text-white placeholder-gray-400"
+            onChange={handleSearch}
+          />
           <div className="flex gap-4">
-            <button onClick={handleFilter}>
+            <button
+              onClick={handleFilter}
+              
+            >
               <img src={filter} alt="Filter" className="w-32 h-32" />
             </button>
+            
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -103,7 +103,7 @@ const Dashboard = () => {
                   <td className="p-3 border border-white">{transaction.activity}</td>
                   <td className="p-3 border border-white">{transaction.date}</td>
                   <td
-                    className={`p-3 font-bold border border-white ${
+                    className={`p-3 font-bold  border border-white ${
                       transaction.status === "Confirmed"
                         ? "text-green-600"
                         : transaction.status === "On Hold"
