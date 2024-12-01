@@ -12,12 +12,14 @@ const sellerValidation=async (req,res)=>{
     const {transactionId} = req.body
     const trans = await Transaction.findById(transactionId)
 
-    if(trans.sellerCardNum!==req.user.id)
-        return res.status(401).send("unauthorized")
-
     if(!trans){
         return res.status(404).send("transaction not found")
     }
+
+    if(trans.sellerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
+
     if(trans.status!=="hold"){
         return res.status(403).send("forbidden")
     }
@@ -26,14 +28,13 @@ const sellerValidation=async (req,res)=>{
 }
 const buyerValidation=async (req,res)=>{
     const {transactionId} = req.body
-
-    if(trans.buyerCardNum!==req.user.id)
-        return res.status(401).send("unauthorized")
-
     const trans = await Transaction.findById(transactionId)
     if(!trans){
         return res.status(404).send("transaction not found")
     }
+    if(trans.buyerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
     if(trans.status!=="sellerConfirmed"){
         return res.status(403).send("forbidden")
     }
@@ -43,13 +44,12 @@ const buyerValidation=async (req,res)=>{
 const cancelTransaction=async (req,res)=>{
     const {transactionId} = req.body
     const trans = await Transaction.findById(transactionId)
-
-    if(trans.buyerCardNum!==req.user.id && trans.sellerCardNum!==req.user.id)
-        return res.status(401).send("unauthorized")
-
     if(!trans){
         return res.status(404).send("transaction not found")
     }
+    if(trans.buyerCardNum!==req.user.id && trans.sellerCardNum!==req.user.id)
+        return res.status(401).send("unauthorized")
+
     if(trans.status!=="hold"){
         return res.status(403).send("forbidden")
     }
@@ -70,25 +70,16 @@ const getAllTransactions = async(req,res)=>{
     });
     res.status(200).send(transactions)
 }
-const getAllSellerTransactions = async (req,res)=>{
-    const {sellerRIP} = req.body
-    try{
-        const transactions= await Transaction.find({ sellerRIP : sellerRIP })
-        res.status(200).send(transactions)
 
-    }catch (e) {
-        res.status(500).send("Internal server error : ", e)
-    }
-}
 const getOneTransaction = async (req,res)=>{
     const {id} = req.params
     const trans= await Transaction.findById(id)
-
-    if(trans.buyerCardNum !== req.user.id && trans.sellerCardNum !== req.user.id)
-        return res.status(401).send("unauthorized")
     if(!trans){
         return res.status(404).send("transaction not found")
     }
+    if(trans.buyerCardNum !== req.user.id && trans.sellerCardNum !== req.user.id)
+        return res.status(401).send("unauthorized")
+
     const seller = await User.findOne({cardNum:trans.sellerCardNum}).select('-password');
     const buyer = await User.findOne({cardNum:trans.buyerCardNum}).select('-password');
     return res.status(200).json({
@@ -113,54 +104,52 @@ const reportIssue = async (req, res) => {
     busboy.on('field', (fieldname, val) => {
 
         if (fieldname === 'transactionId') {
-            transactionId = val;  // Cast to a number
+            transactionId = val;
         } else if (fieldname === 'sellerRIP') {
-            sellerRIP = Number(val);  // Cast to a number
+            sellerRIP = Number(val);
         } else if (fieldname === 'message') {
             message = val;
         }
     });
-
+    let fileDir
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-        const saveTo = path.join(__dirname, '../uploads', `${Date.now()}-${filename}.pdf`);
-        uploadedFilePath = saveTo;
+        fileDir = path.join( '/uploads', `${Date.now()}-${filename}.pdf`);
+        const dir = path.join(__dirname, '../uploads', `${Date.now()}-${filename}.pdf`)
 
-        file.pipe(fs.createWriteStream(saveTo));
+        file.pipe(fs.createWriteStream(dir));
     });
 
     busboy.on('finish', async () => {
-        if (!transactionId || !sellerRIP || !message || !uploadedFilePath) {
+        if (!transactionId || !sellerRIP || !message || !fileDir) {
             return res.status(400).send('Missing required fields or file');
         }
-
-        try {
-            const trans = await Transaction.findById(transactionId);
+            console.log(transactionId)
+            const trans = await Transaction.find({_id:transactionId})
             if (!trans) {
                 return res.status(404).send("Transaction not found");
             }
 
-            if (trans.status !== 'sellerConfirmed') {
-                return res.status(403).send("Forbidden: Transaction status is not valid");
-            }
+            // if (trans.status !== 'sellerConfirmed') {
+            //     return res.status(403).send("Forbidden: Transaction status is not valid");
+            // }
 
             await Transaction.findByIdAndUpdate(transactionId, { status: 'issued' });
 
             const report = new Report({
-                sellerRIP,
+                sellerCardNum:sellerRIP,
                 transactionId,
                 message,
-                filePath: uploadedFilePath,
+                filePath: fileDir,
             });
             await report.save();
 
             res.status(200).send('Report submitted successfully');
-        } catch (error) {
-            res.status(500).send("Internal server error: " + error.message);
-        }
+
     });
 
     req.pipe(busboy);
 };
+
 
 
 module.exports = {
@@ -170,5 +159,5 @@ module.exports = {
     cancelTransaction,
     reportIssue,
     getAllTransactions,
-    getOneTransaction
+    getOneTransaction,
 };
