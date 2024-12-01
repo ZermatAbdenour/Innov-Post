@@ -2,12 +2,52 @@ import React, { useState } from "react";
 import bg from "../assets/RedirectPage.png"; // Background image
 import logo from "../assets/logo.svg"; // Logo image
 import line from "../assets/line.svg";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-
+import axios, { AxiosError } from "axios";
+import { localHostUrl } from "../utils";
 
 const AuthenticationPage = () => {
   const [style, setStyle] = useState({});
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [cardNum, setCardNum] = useState(""); // State to store the card number
+  const [cvv, setCvv] = useState(""); // State to store the CVV
+  const [month, setMonth] = useState("01"); // State to store the month
+  const [year, setYear] = useState("24"); // State to store the year
+  const [name, setName] = useState(""); // State to store the name
 
+  const handleCardNumChange = (event) => setCardNum(event.target.value); // Update the card number state
+  const handleCvvChange = (event) => setCvv(event.target.value); // Update the CVV state
+  const handleMonthChange = (event) => setMonth(event.target.value); // Update the month state
+  const handleYearChange = (event) => setYear(event.target.value); // Update the year state
+  const handleNameChange = (event) => setName(event.target.value); // Update the name state
+  const handleSubmit = async () => {
+    try {
+
+      const response = await axios.post(`${localHostUrl}/auth/login`, {
+        cardNum: cardNum,
+        ccv2: Number.parseInt(cvv),
+        expirationDate: `${month}-${year}-01`,
+        fullName: name,
+      })
+      localStorage.setItem("token", response.data.token)
+      if (transactionId === null) {
+        navigate("/dashboard")
+      } else {
+        navigate(`/transaction-details/buyer/${transactionId}`)
+      }
+
+
+    } catch (e) {
+      console.log(e)
+    }
+
+  }
+
+  // Parse query parameters from the URI
+  const queryParams = new URLSearchParams(location.search);
+  const transactionId = queryParams.get("transactionId"); // Retrieve the 'transactionId' parameter // Retrieve the 'transactionId' parameter
   const handleMouseMove = (event) => {
     const { offsetWidth: width, offsetHeight: height } = event.currentTarget;
     const { clientX, clientY } = event;
@@ -40,21 +80,22 @@ const AuthenticationPage = () => {
     });
   };
 
-  const months = [
-    "01 - January",
-    "02 - February",
-    "03 - March",
-    "04 - April",
-    "05 - May",
-    "06 - June",
-    "07 - July",
-    "08 - August",
-    "09 - September",
-    "10 - October",
-    "11 - November",
-    "12 - December",
-  ];
 
+
+  const months = [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+  ];
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, index) => currentYear + index);
 
@@ -102,6 +143,7 @@ const AuthenticationPage = () => {
               id="card-number"
               type="text"
               placeholder="XXXX XXXX XXXX XXXX"
+              onChange={handleCardNumChange}
               className="w-full px-4 py-3 rounded-md bg-white/20 text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.15)", // Slight transparency for the left input
@@ -118,6 +160,7 @@ const AuthenticationPage = () => {
               <input
                 id="cvv"
                 type="text"
+                onChange={handleCvvChange}
                 placeholder="123"
                 className="w-full px-4 py-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 style={{
@@ -138,6 +181,7 @@ const AuthenticationPage = () => {
             <div className="flex space-x-2">
               <select
                 id="month"
+                onChange={handleMonthChange}
                 className="w-1/2 px-4 py-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.1)", // Slight transparency for the month select
@@ -151,6 +195,7 @@ const AuthenticationPage = () => {
               </select>
               <select
                 id="year"
+                onChange={handleYearChange}
                 className="w-1/2 px-4 py-3 rounded-md bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.1)", // Slight transparency for the year select
@@ -168,6 +213,7 @@ const AuthenticationPage = () => {
           <div>
             <label
               htmlFor="name"
+
               className="block text-white font-medium mb-2"
             >
               Nom Prénom *
@@ -175,6 +221,7 @@ const AuthenticationPage = () => {
             <input
               id="name"
               type="text"
+              onChange={handleNameChange}
               placeholder="John Doe"
               className="w-full px-4 py-3 rounded-md bg-white/20 text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
               style={{
@@ -185,15 +232,16 @@ const AuthenticationPage = () => {
 
           {/* Buttons */}
           <div className="flex justify-center md:justify-end space-x-4 mt-6">
-          <Link to="/transaction-details/buyer">
+            {/* <Link to="/transaction-details/buyer"> */}
 
             <button
               type="button"
+              onClick={handleSubmit}
               className="px-5 py-2 rounded-md bg-yellow-500 hover:bg-transparent hover:border-2 hover:border-yellow-500 text-white font-normal shadow-md"
             >
               Submit
             </button>
-            </Link>
+            {/* </Link> */}
             <button
               type="reset"
               className="px-5 py-2 rounded-md border-2 hover:bg-yellow-500 border-yellow-500 text-white font-normal shadow-md "
@@ -201,18 +249,18 @@ const AuthenticationPage = () => {
               Reset
             </button>
             <Link to="/">
-            <button
-              type="button"
-              className="px-5 py-2 rounded-md bg-gray-800 text-white font-normal shadow-md hover:bg-red-500 "
-            >
-              Cancel
-            </button>
+              <button
+                type="button"
+                className="px-5 py-2 rounded-md bg-gray-800 text-white font-normal shadow-md hover:bg-red-500 "
+              >
+                Cancel
+              </button>
             </Link>
 
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

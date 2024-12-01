@@ -4,17 +4,38 @@ import logo from "../assets/logo.svg"; // Logo image
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"; // Import FontAwesome icon
 
+import axios from "axios";
+import { localHostUrl } from "../utils";
+import { useNavigate } from "react-router-dom";
+
 const RedirectPage = () => {
   const [dots, setDots] = useState(""); // State to control the animated dots
-
+  const navigate = useNavigate();
   // Automatically redirect to another page after 5 seconds
   useEffect(() => {
     const redirectTimer = setTimeout(() => {
-      window.location.href = "/auth"; // Replace '/' with your target route
+
     }, 1500);
 
-    return () => clearTimeout(redirectTimer); // Cleanup timer on component unmount
-  }, []);
+    const postRedirect = async () => {
+      try {
+        const transaction = await axios.post(`${localHostUrl}/auth/redirect`,
+          {
+            sellerCardNum: "0079999900000002",
+            buyerCardNum: "0079999900000001",
+            price: 50000,
+          }
+        )
+
+        if (transaction.data.transaction) {
+          window.location.href = "http://localhost:5173/auth?transactionId=" + transaction.data.transaction
+        }
+
+      } catch (e) { console.log(e) }
+
+    }
+    postRedirect();
+  }, [])
 
   // Animate dots
   useEffect(() => {

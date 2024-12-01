@@ -25,13 +25,13 @@ const App = () => {
         <Route path="/auth" element={<AuthenticationPage />} />
 
         {/* Route for Transaction Details for Buyer */}
-        <Route path="/transaction-details/buyer" element={<TransactionDetailsBuyer />} />
+        <Route path="/transaction-details/buyer/:transactionId" element={<TransactionDetailsBuyer />} />
 
         {/* Route for Transaction Details for Seller */}
-        <Route path="/transaction-details/seller" element={<TransactionDetailsSeller />} />
+        <Route path="/transaction-details/seller/:transactionId" element={<TransactionDetailsSeller />} />
         <Route path="/ReportPage" element={<ReportPage />} />
 
-        
+
       </Routes>
     </Router>
   );
